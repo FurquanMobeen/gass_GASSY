@@ -1,0 +1,7 @@
+path: ./dataset
+
+train: images/train
+val: images/val
+
+nc: 2  # number of classes
+names: ['ok', 'nok']

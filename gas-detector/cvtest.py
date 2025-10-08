@@ -8,7 +8,7 @@ model = YOLO("yolov8n.pt")
 
 # use this mp4 file as a reference
 
-cap = cv2.VideoCapture("14_55_back_right_cropped.mp4")
+cap = cv2.VideoCapture("file_here")
 if not cap.isOpened():
     print("Error in opening video")
     exit()

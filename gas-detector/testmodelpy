@@ -1,0 +1,14 @@
+from ultralytics import YOLO
+import cv2
+import random
+
+import os
+print(os.path.exists(r"C:\Users\purva\Documents\GitHub\gass_GASSY\gas-detector\runs\detect\gas_detection\weights\best.pt"))
+
+
+model = YOLO(r"C:\Users\purva\Documents\GitHub\gass_GASSY\gas-detector\runs\detect\gas_detection\weights\best.pt")
+
+
+results = model.predict(source=r"C:\Users\purva\Documents\GitHub\gass_GASSY\gas-detector\dataset\images\val\14_55_front_3975.jpg", show=True, conf=0.4)
+
+results = model.predict(source=r"C:\Users\purva\Documents\GitHub\gass_GASSY\gas-detector\sorteren_phase_1.mp4", show=True, conf=0.4)

@@ -3,5 +3,5 @@ path: ./dataset
 train: images/train
 val: images/val
 
-nc: 2  # number of classes
-names: ['ok', 'nok']
+nc: 1  # number of classes
+names: ['gasbottle']

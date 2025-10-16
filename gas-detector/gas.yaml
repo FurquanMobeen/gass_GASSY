@@ -1,4 +1,4 @@
-path: ./dataset
+path: C:/Users/35850/Desktop/UCLL/Ai_Applications/computervisiontest/gass_GASSY/gas-detector/dataset
 
 train: images/train
 val: images/val

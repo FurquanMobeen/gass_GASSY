@@ -4,7 +4,7 @@ import cv2
 
 # download yolo-model
 
-model = YOLO("yolov8n.pt")
+model = YOLO("runs\detect\train3\weights\best.pt")
 
 # use this mp4 file as a reference
 

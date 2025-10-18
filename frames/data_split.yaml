@@ -1,9 +1,0 @@
-# Dataset configuration for YOLO training
-path: C:/Users/furqu/OneDrive/UCLL/Projects/Gassy/gass_GASSY/frames  # dataset root dir
-train: train/images  # train images (relative to 'path')
-val: val/images      # val images (relative to 'path')
-test: test/images    # test images (relative to 'path')
-
-# Classes
-nc: 1  # number of classes
-names: ['gas_bottle']  # class names

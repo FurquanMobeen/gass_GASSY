@@ -1,22 +1,21 @@
-# YOLO Dataset Configuration File
-# Gas Tank Detection Dataset
+# Dataset paths
+path: .
+train: train/images
+val: val/images
+test: test/images
 
-# Dataset paths (relative to this file)
-path: .  # dataset root dir
-train: images
-val: images
-test: images
+# Label paths (relative to 'path')
+train_labels: train/labels
+val_labels: val/labels
+test_labels: test/labels
 
 # Classes
-names:
-  0: gas_tank
-
-# Number of classes
 nc: 1
+names: ['gas_bottle']
 
 # Dataset information
 dataset_name: "Gas Tank Detection Dataset"
-description: "Dataset for detecting gas tanks from multiple camera angles"
+description: "Dataset for detecting gas tanks from multiple camera angles (back_left, back_right, front, top)"
 
 # Camera angles available
 camera_angles:

@@ -1,0 +1,31 @@
+# YOLO Dataset Configuration File
+# Gas Tank Detection Dataset
+
+# Dataset paths (relative to this file)
+path: .  # dataset root dir
+train: images
+val: images
+test: images
+
+# Classes
+names:
+  0: gas_tank
+
+# Number of classes
+nc: 1
+
+# Dataset information
+dataset_name: "Gas Tank Detection Dataset"
+description: "Dataset for detecting gas tanks from multiple camera angles"
+
+# Camera angles available
+camera_angles:
+  - back_left
+  - back_right  
+  - front
+  - top
+
+# Additional metadata
+created_by: "GASSY Project"
+version: "1.0"
+date_created: "2025-10-18"

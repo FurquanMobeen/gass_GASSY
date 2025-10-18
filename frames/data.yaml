@@ -1,0 +1,30 @@
+# Dataset paths
+path: .
+train: train/images
+val: val/images
+test: test/images
+
+# Label paths (relative to 'path')
+train_labels: train/labels
+val_labels: val/labels
+test_labels: test/labels
+
+# Classes
+nc: 1
+names: ['gas_bottle']
+
+# Dataset information
+dataset_name: "Gas Tank Detection Dataset"
+description: "Dataset for detecting gas tanks from multiple camera angles (back_left, back_right, front, top)"
+
+# Camera angles available
+camera_angles:
+  - back_left
+  - back_right  
+  - front
+  - top
+
+# Additional metadata
+created_by: "GASSY Project"
+version: "1.0"
+date_created: "2025-10-18"

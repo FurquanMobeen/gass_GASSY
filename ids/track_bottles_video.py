@@ -4,7 +4,8 @@ import random
 from ultralytics import YOLO
 
 
-yolo = YOLO("models/yolo11x_finetuned_bottles_on_site_v3.pt")
+yolo = YOLO("models/best.pt")
+
 
 video_paths = [
     "videos/14_55_front_cropped.mp4",
@@ -13,7 +14,7 @@ video_paths = [
     "videos/14_55_back_right_cropped.mp4"
 ]
 
-
+# Helper functions
 def getColour(id_num):
     random.seed(int(id_num))
     return tuple(random.randint(180, 255) for _ in range(3))
@@ -55,15 +56,16 @@ active = [True]*len(video_paths)
 
 
 # Global ID tracking
+
 next_global_id = 1
-bottle_history = {}  # gid
+bottle_history = {}  # gid -> list of records
 
 # Matching thresholds
 HIST_THRESH = 0.75
 SIZE_THRESH = 0.3
 
 
-# Main loop
+
 frame_count = 0
 while any(active):
     frame_count += 1
@@ -136,16 +138,20 @@ while any(active):
                         'cams': [cam_idx]
                     }]
 
-                # Draw bounding box & ID (bottom-right)
+
+                # Draw bounding box & ID
                 colour = getColour(gid)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 5)
-                
+
                 text = f"ID {gid}"
-                font_scale = max(10.0, h / 80)  # increase for larger boxes
-                thickness = int(max(10, font_scale*10))
-                (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 2.0, 4)
-                cv2.putText(frame, text, (x2 - text_width, y2 + text_height),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, colour, 3)
+                font_scale = max(1.2, h / 100)   # medium size
+                thickness = int(max(2, font_scale*2))
+
+                (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
+                text_x = x1 + (w - text_width)//2
+                text_y = y1 + text_height + 5   # padding from top of box
+
+                cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, colour, thickness)
 
     # 3. Show all cameras in grid
     grid_frame = create_grid(frames, rows=2, cols=2, width=640, height=360)
@@ -158,3 +164,4 @@ while any(active):
 for cap in caps:
     cap.release()
 cv2.destroyAllWindows()
+

@@ -3,10 +3,8 @@ import numpy as np
 import random
 from ultralytics import YOLO
 
-# -----------------------------
-# Load trained YOLOv8 model
-# -----------------------------
-yolo = YOLO("yolov8n.pt")
+
+yolo = YOLO("models/yolo11x_finetuned_bottles_on_site_v3.pt")
 
 video_paths = [
     "videos/14_55_front_cropped.mp4",
@@ -15,161 +13,148 @@ video_paths = [
     "videos/14_55_back_right_cropped.mp4"
 ]
 
-# -----------------------------
-# Helper functions
-# -----------------------------
+
 def getColour(id_num):
-    random.seed(id_num)
-    return tuple(random.randint(0, 255) for _ in range(3))
+    random.seed(int(id_num))
+    return tuple(random.randint(180, 255) for _ in range(3))
 
 def compute_hist(frame, x1, y1, x2, y2):
-    """Compute a simple HSV histogram for the region inside the box."""
     roi = frame[y1:y2, x1:x2]
     if roi.size == 0:
         return None
     hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
-    hist = cv2.calcHist([hsv], [0, 1], None, [16, 16], [0, 180, 0, 256])
+    hist = cv2.calcHist([hsv], [0,1], None, [16,16], [0,180,0,256])
     cv2.normalize(hist, hist)
     return hist.flatten()
 
 def hist_distance(h1, h2):
-    """Compute correlation between two histograms."""
     if h1 is None or h2 is None:
         return 0
     return cv2.compareHist(h1, h2, cv2.HISTCMP_CORREL)
 
-# -----------------------------
-# Video setup
-# -----------------------------
-video_caps = [cv2.VideoCapture(p) for p in video_paths]
-active_streams = [True] * len(video_paths)
-
-# -----------------------------
-# Global ID management
-# -----------------------------
-next_global_id = 1
-bottle_history = {}  # global_id -> list of recent positions & histograms
-
-# Matching thresholds
-CENTER_THRESHOLD = 50  # pixels
-SIZE_THRESHOLD = 0.3   # 30% size difference
-HIST_THRESHOLD = 0.7   # histogram correlation
-
-# -----------------------------
-# Grid display settings
-# -----------------------------
-DISPLAY_WIDTH = 320
-DISPLAY_HEIGHT = 240
-
-def create_grid(frames, rows=2, cols=2):
-    """Combine frames into a grid of size rows x cols."""
-    resized_frames = []
+def create_grid(frames, rows=2, cols=2, width=640, height=360):
+    resized = []
     for frame in frames:
-        if frame is not None:
-            small_frame = cv2.resize(frame, (DISPLAY_WIDTH, DISPLAY_HEIGHT))
+        if frame is None:
+            frame = np.zeros((height, width,3), dtype=np.uint8)
         else:
-            small_frame = np.zeros((DISPLAY_HEIGHT, DISPLAY_WIDTH, 3), dtype=np.uint8)
-        resized_frames.append(small_frame)
-
-    while len(resized_frames) < rows * cols:
-        resized_frames.append(np.zeros((DISPLAY_HEIGHT, DISPLAY_WIDTH, 3), dtype=np.uint8))
-
+            frame = cv2.resize(frame, (width, height))
+        resized.append(frame)
+    while len(resized) < rows*cols:
+        resized.append(np.zeros((height, width,3), dtype=np.uint8))
     grid_rows = []
     for r in range(rows):
-        row_frames = resized_frames[r*cols:(r+1)*cols]
-        row = np.hstack(row_frames)
-        grid_rows.append(row)
-    grid = np.vstack(grid_rows)
-    return grid
+        row_frames = resized[r*cols:(r+1)*cols]
+        grid_rows.append(np.hstack(row_frames))
+    return np.vstack(grid_rows)
 
-# -----------------------------
+
+# Video capture
+caps = [cv2.VideoCapture(p) for p in video_paths]
+active = [True]*len(video_paths)
+
+
+# Global ID tracking
+next_global_id = 1
+bottle_history = {}  # gid
+
+# Matching thresholds
+HIST_THRESH = 0.75
+SIZE_THRESH = 0.3
+
+
 # Main loop
-# -----------------------------
-while any(active_streams):
+frame_count = 0
+while any(active):
+    frame_count += 1
     frames = []
-    results_per_video = []
+    results_list = []
 
-    # Read frames from all videos
-    for i, cap in enumerate(video_caps):
-        if active_streams[i]:
+    # 1. Read frames
+    for i, cap in enumerate(caps):
+        if active[i]:
             ret, frame = cap.read()
             if ret:
                 frames.append(frame)
-                results = yolo.track(frame, persist=True, stream=False, tracker="bytetrack.yaml", conf=0.4)
-                results_per_video.append(results)
+                results = yolo.track(frame, conf=0.4, tracker="bytetrack.yaml", persist=True, stream=False)
+                results_list.append(results)
             else:
+                active[i] = False
                 frames.append(None)
-                results_per_video.append(None)
-                active_streams[i] = False
+                results_list.append(None)
         else:
             frames.append(None)
-            results_per_video.append(None)
+            results_list.append(None)
 
-    # -----------------------------
-    # Cross-camera global ID assignment
-    # -----------------------------
-    for vid_idx, results in enumerate(results_per_video):
-        frame = frames[vid_idx]
+    # 2. Process detections
+    for cam_idx, results in enumerate(results_list):
+        frame = frames[cam_idx]
         if frame is None or results is None:
             continue
 
-        for result in results:
-            if result.boxes is None or len(result.boxes) == 0:
+        for res in results:
+            if not hasattr(res, "boxes") or len(res.boxes) == 0:
                 continue
 
-            xyxy = getattr(result.boxes, 'xyxy', None)
-            ids = getattr(result.boxes, 'id', None)
-            if xyxy is None or ids is None:
-                continue
+            xyxy = res.boxes.xyxy.cpu().numpy()
+            confs = res.boxes.conf.cpu().numpy() if hasattr(res.boxes,"conf") else np.ones(len(xyxy))
 
-            for box, local_id in zip(xyxy, ids):
-                x1, y1, x2, y2 = map(int, box)
-                w, h = x2 - x1, y2 - y1
-                cx, cy = x1 + w//2, y1 + h//2
+            for (x1,y1,x2,y2), conf in zip(xyxy, confs):
+                x1, y1, x2, y2 = map(int, (x1, y1, x2, y2))
+                if conf < 0.4:
+                    continue
+
+                w, h = x2-x1, y2-y1
                 hist = compute_hist(frame, x1, y1, x2, y2)
 
-                # Match with existing global IDs
-                assigned_gid = None
-                for gid, entries in bottle_history.items():
-                    for entry in entries:
-                        px, py, pw, ph, phist = entry
-                        center_dist = np.sqrt((cx - px)**2 + (cy - py)**2)
-                        size_diff = abs(w*h - pw*ph) / max(w*h, pw*ph)
-                        hist_corr = hist_distance(hist, phist)
-
-                        if center_dist < CENTER_THRESHOLD and size_diff < SIZE_THRESHOLD and hist_corr > HIST_THRESHOLD:
-                            assigned_gid = gid
+                # Match with existing bottles globally
+                gid = None
+                for old_gid, records in bottle_history.items():
+                    for r in records:
+                        size_diff = abs(w*h - r['w']*r['h']) / max(w*h, r['w']*r['h'])
+                        corr = hist_distance(hist, r['hist'])
+                        if corr > HIST_THRESH and size_diff < SIZE_THRESH:
+                            gid = old_gid
+                            r['hist'] = hist
+                            r['w'], r['h'] = w, h
+                            r['last_seen'] = frame_count
+                            if cam_idx not in r['cams']:
+                                r['cams'].append(cam_idx)
                             break
-                    if assigned_gid is not None:
+                    if gid is not None:
                         break
 
-                # Assign new global ID if no match
-                if assigned_gid is None:
-                    assigned_gid = next_global_id
+                # New bottle
+                if gid is None:
+                    gid = next_global_id
                     next_global_id += 1
-                    bottle_history[assigned_gid] = []
+                    bottle_history[gid] = [{
+                        'hist': hist,
+                        'w': w,
+                        'h': h,
+                        'last_seen': frame_count,
+                        'cams': [cam_idx]
+                    }]
 
-                # Save history
-                bottle_history[assigned_gid].append((cx, cy, w, h, hist))
-                if len(bottle_history[assigned_gid]) > 5:
-                    bottle_history[assigned_gid] = bottle_history[assigned_gid][-5:]
+                # Draw bounding box & ID (bottom-right)
+                colour = getColour(gid)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 5)
+                
+                text = f"ID {gid}"
+                font_scale = max(10.0, h / 80)  # increase for larger boxes
+                thickness = int(max(10, font_scale*10))
+                (text_width, text_height), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 2.0, 4)
+                cv2.putText(frame, text, (x2 - text_width, y2 + text_height),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, colour, 3)
 
-                # Draw box and ID
-                colour = getColour(assigned_gid)
-                cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
-                cv2.putText(frame, f"ID {assigned_gid}", (x1, max(y1-10, 20)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, colour, 2)
-
-    # -----------------------------
-    # Display all videos in a 2x2 grid
-    # -----------------------------
-    grid_frame = create_grid(frames, rows=2, cols=2)
-    cv2.imshow("All Cameras - 2x2 Grid", grid_frame)
+    # 3. Show all cameras in grid
+    grid_frame = create_grid(frames, rows=2, cols=2, width=640, height=360)
+    cv2.imshow("All Cameras Grid", grid_frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Release resources
-for cap in video_caps:
+# Cleanup
+for cap in caps:
     cap.release()
 cv2.destroyAllWindows()

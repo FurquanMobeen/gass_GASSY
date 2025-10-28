@@ -5,7 +5,7 @@ import os
 
 def predict(image_path):
     model_dir = "models/bottle_classifier.pth"
-    data_dir = "data"
+    data_dir = "data/sorted_data"
     
     transform = transforms.Compose([
         transforms.Resize((224, 224)),

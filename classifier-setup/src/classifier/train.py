@@ -6,7 +6,7 @@ from torchvision import datasets, models, transforms
 import os
 
 def main():
-    data_dir = "data" # you can move labeled images here
+    data_dir = "data/sorted_data" # you can move labeled images to this folder
     model_dir = "models"
     os.makedirs(model_dir, exist_ok=True)
     

@@ -73,7 +73,7 @@ def classify_gas_bottle(frame, x1, y1, x2, y2):
     
     return predicted_class, confidence
 
-video_path = "getting_familiar/gas-detector/sorteren_phase_1.mp4"
+video_path = "videos/input/14_43_front_cropped.mp4"
 videoCap = cv2.VideoCapture(video_path)
 
 frame_count = 0

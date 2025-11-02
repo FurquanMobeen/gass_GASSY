@@ -76,6 +76,7 @@ videoCap.release()
 ---
 
 ## 🏆 Latest Performance Results
+### YOLO Model Object detection:
 The model achieved excellent detection accuracy on photo-based validation datasets.
 | Metric | Value | Description |
 |:-------|:------:|:------------|
@@ -83,6 +84,13 @@ The model achieved excellent detection accuracy on photo-based validation datase
 | 🎯 **Precision** | ≈ 0.99 | Correct detections among predicted positives |
 | 🔍 **Recall** | ≈ 0.98 | True detections among actual positives |
 | ⚖️ **F1 Score** | 0.96 @ conf=0.79 | Best balance between precision and recall |
+
+### EfficientNet_B0 classification:
+- Early stopping successfully prevented overfitting across folds and reduced unnecessary computation. 
+- Validation performance varied across folds, highlighting differences in the dataset splits and the model’s sensitivity to specific subsets. 
+- Fold 3 performed best, showing that some splits may contain data easier for the model to learn. 
+- Overall, the model demonstrates strong generalization, with an average validation accuracy of 87.74% across 5 folds. 
+- The loss and accuracy curves provide a clear visual understanding of the learning process and model stability. 
 
 ### 📊 Performance Visualization
 The chart below summarizes the YOLO model’s performance metrics:

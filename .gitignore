@@ -1,3 +1,6 @@
 /videos
 /images
 /models
+/classifier_setup/src/models
+/classifier_setup/src/model_cache
+/classifier_setup/data/sorted_data

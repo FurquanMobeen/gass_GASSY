@@ -11,6 +11,10 @@ The system supports **on-site deployment** and aims to enhance:
 - Safety monitoring  
 - Inventory tracking  
 
+### Main algorithms
+- `track-gas-bottle.py` : Gas bottle tracking from one source video.
+- `track-gas-bottle-multiple-videos.py` : Gas bottle tracking from multiple source videos.
+- `track-gas-bottle-classification.py` : Gas bottle tracking from multiple source videos with classification (ok, not PrimaGaz, etc..)
 ---
 
 ## 🧩 Customer Requirements

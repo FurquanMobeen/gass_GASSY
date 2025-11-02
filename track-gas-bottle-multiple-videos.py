@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 
 # Load YOLO model
-yolo = YOLO("models/best.pt")
+yolo = YOLO("models/yolo11x_finetuned_bottles_on_site_v3.pt")
 
 # Video paths
 video_paths = [

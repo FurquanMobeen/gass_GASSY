@@ -92,6 +92,9 @@ The chart below summarizes the YOLO model’s performance metrics:
 
 🧪 Performance evaluation was performed on fine-tuned YOLO11x trained with real site photos.
 
+### Multiple videos tracking in `track-gas-bottle-multiple-videos.py`:
+We added this in order to apply this algorithm to multiple videos from different angles, making the tracking and classification of gas bottles more accurate.
+
 ---
 ## 🚀 How to Run the Tracker
 ### 1️⃣ Install Dependencies

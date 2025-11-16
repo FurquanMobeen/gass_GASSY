@@ -176,9 +176,9 @@ The model achieved excellent detection accuracy on photo-based validation datase
 
 ### EfficientNet_B0 classification:
 - Early stopping successfully prevented overfitting across folds and reduced unnecessary computation. 
-- Validation performance varied across folds, highlighting differences in the dataset splits and the model’s sensitivity to specific subsets. 
-- Fold 3 performed best, showing that some splits may contain data easier for the model to learn. 
-- Overall, the model demonstrates strong generalization, with an average validation accuracy of 87.74% across 5 folds. 
+- Validation performance was consistently high across folds, demonstrating the model’s stability and ability to generalize.. 
+- Fold 2 achieved perfect validation accuracy, showing that the dataset is well-learned by the model.
+- Overall, the model demonstrates strong generalization, with an average validation accuracy of 98.63% across 5 folds.
 - The loss and accuracy curves provide a clear visual understanding of the learning process and model stability. 
 
 ### 📊 Performance Visualization

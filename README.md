@@ -169,10 +169,10 @@ cv2.destroyAllWindows()
 The model achieved excellent detection accuracy on photo-based validation datasets.
 | Metric | Value | Description |
 |:-------|:------:|:------------|
-| 🧩 **mAP@0.5** | **0.992** | Mean Average Precision at IoU 0.5 |
-| 🎯 **Precision** | ≈ 0.99 | Correct detections among predicted positives |
-| 🔍 **Recall** | ≈ 0.98 | True detections among actual positives |
-| ⚖️ **F1 Score** | 0.96 @ conf=0.79 | Best balance between precision and recall |
+| 🧩 **mAP@0.5** | **0.9932**  | Mean Average Precision at IoU 0.5 |
+| 🎯 **Precision** | **0.9811**  | Correct detections among predicted positives |
+| 🔍 **Recall** | **0.9832** | True detections among actual positives |
+| ⚖️ **F1 Score** | **0.9821** | Best balance between precision and recall |
 
 ### EfficientNet_B0 classification:
 - Early stopping successfully prevented overfitting across folds and reduced unnecessary computation. 

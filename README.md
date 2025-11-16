@@ -17,6 +17,7 @@ The system supports **on-site deployment** and aims to enhance:
 - `track-gas-bottle-multiple-videos.py` : Gas bottle tracking from multiple source videos.
 - `track-gas-bottle-classification.py` : Gas bottle tracking from multiple source videos with classification (ok, not PrimaGaz, etc..)
 - `track-gas-bottle-multiple-videos-pretrained-OCR.py` : Gas bottle tracking from multiple source videos with pretrained OCR.
+- `track-gas-bottle-read-tarra-year.py` : Gas bottle tracking text with YOLOv11m and OCR reading, displayed in separate panel.
 ---
 
 ## 🧩 Customer Requirements

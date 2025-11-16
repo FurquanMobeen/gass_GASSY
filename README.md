@@ -133,3 +133,41 @@ python3 track-gas-bottle.py
 python3 track-gas-bottle.py
 ```
 🎥 Press `q` during execution to quit the tracking window.
+
+---
+
+## 📖 How to Run OCR-Enhanced Tracking
+
+The `track-gas-bottle-read-tarra-year.py` script combines YOLO detection with **EasyOCR** to read text from detected gas bottles.
+
+### 1️⃣ Install Additional Dependencies
+```bash
+pip install easyocr
+```
+
+### 2️⃣ Update Video Path
+Open `track-gas-bottle-read-tarra-year.py` and set your video:
+```python
+video_path = "videos/input/your_video.mp4"
+```
+
+### 3️⃣ Run the Script
+#### 🪟 On Windows
+```bash
+python track-gas-bottle-read-tarra-year.py
+```
+#### 🍎 On macOS / 🐧 On Linux
+```bash
+python3 track-gas-bottle-read-tarra-year.py
+```
+
+### 📹 Output
+The annotated video will be saved to:
+```
+videos/output/output_tracked.mp4
+```
+
+This script displays:
+- Bounding boxes with class names and confidence scores
+- OCR-detected text in a separate panel for better visibility
+

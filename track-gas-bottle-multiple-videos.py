@@ -3,25 +3,31 @@ import numpy as np
 import random
 from ultralytics import YOLO
 
+# >>> UPDATED: PyTorch classifier imports
+import torch
+import torch.nn as nn
+from torchvision import models, transforms
+from PIL import Image
+# <<< END UPDATE
 
-# Load YOLO model
-yolo = YOLO("models/yolo11x_finetuned_bottles_on_site_v3.pt")
+# --- Load YOLO model ---
+yolo = YOLO(r"C:\Users\purva\Documents\GitHub\gass_GASSY\models\yolo11x_finetuned_bottles_on_site_v3 (1).pt")
 
-# Video paths
+# --- Video paths ---
 video_paths = [
-    "videos/14_55_front_cropped.mp4",
-    "videos/14_55_top_cropped.mp4",
-    "videos/14_55_back_left_cropped.mp4",
-    "videos/14_55_back_right_cropped.mp4"
+    r"C:\Users\purva\Documents\GitHub\gass_GASSY\videos/14_55_front_cropped.mp4",
+    r"C:\Users\purva\Documents\GitHub\gass_GASSY\videos/14_55_top_cropped.mp4",
+    r"C:\Users\purva\Documents\GitHub\gass_GASSY\videos/14_55_back_left_cropped.mp4",
+    r"C:\Users\purva\Documents\GitHub\gass_GASSY\videos/14_55_back_right_cropped.mp4"
 ]
 
-# Helper functions
+# --- Helper functions ---
 def getColour(id_num):
     random.seed(int(id_num))
     return tuple(random.randint(180, 255) for _ in range(3))
 
 def getColours(cls_num):
-    cls_num = int(cls_num)  # FIXED: ensure Python int
+    cls_num = int(cls_num)
     random.seed(cls_num)
     return tuple(random.randint(0, 255) for _ in range(3))
 
@@ -55,22 +61,52 @@ def create_grid(frames, rows=2, cols=2, width=640, height=360):
         grid_rows.append(np.hstack(row_frames))
     return np.vstack(grid_rows)
 
-
-# Video capture
+# --- Video capture ---
 caps = [cv2.VideoCapture(p) for p in video_paths]
 active = [True]*len(video_paths)
 
-# Global ID tracking
+# --- Global ID tracking ---
 next_global_id = 1
 bottle_history = {}  # gid -> list of records
 
-# Matching thresholds
+# --- Matching thresholds ---
 HIST_THRESH = 0.75
 SIZE_THRESH = 0.3
 
 frame_count = 0
 
-# Main loop
+# >>> UPDATED: EfficientNet classifier setup
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+
+num_classes = 2  # Replace with your actual number of classes
+classifier_path = r"C:\Users\purva\Documents\Github\gass_GASSY\classifier-setup\src\classifier\models\bottle_classifier_fold_5.pth"
+
+img_size = (224, 224)
+classifier_transforms = transforms.Compose([
+    transforms.Resize(img_size),
+    transforms.CenterCrop(img_size),
+    transforms.ToTensor(),
+    transforms.Normalize([0.485, 0.456, 0.406],
+                         [0.229, 0.224, 0.225])
+])
+
+def load_classifier(num_classes, path):
+    model = models.efficientnet_b0(weights=None)
+    num_ftrs = model.classifier[1].in_features
+    model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+    model.load_state_dict(torch.load(path, map_location=device))
+    model.eval()
+    model.to(device)
+    return model
+
+classifier_model = load_classifier(num_classes, classifier_path)
+
+# Class names (replace with your actual training class order)
+class_labels = ['ok', 'nok']
+# <<< END UPDATE
+
+# --- Main loop ---
 while any(active):
     frame_count += 1
     frames = []
@@ -82,7 +118,7 @@ while any(active):
         if active[i]:
             ret, frame = cap.read()
             if ret:
-                all_videos_finished = False  # At least one video is still running
+                all_videos_finished = False
                 frames.append(frame)
                 results = yolo.track(frame, conf=0.4, tracker="bytetrack.yaml", persist=True, stream=False)
                 results_list.append(results)
@@ -104,7 +140,7 @@ while any(active):
             if not hasattr(res, "boxes") or len(res.boxes) == 0:
                 continue
 
-            class_names = res.names
+            class_names_yolo = res.names
             xyxy = res.boxes.xyxy.cpu().numpy()
             confs = res.boxes.conf.cpu().numpy() if hasattr(res.boxes,"conf") else np.ones(len(xyxy))
             clses = res.boxes.cls.cpu().numpy().astype(int) if hasattr(res.boxes,"cls") else np.zeros(len(xyxy))
@@ -117,7 +153,7 @@ while any(active):
                 w, h = x2-x1, y2-y1
                 hist = compute_hist(frame, x1, y1, x2, y2)
 
-                # Match with existing bottles globally
+                # --- Match with existing bottles globally ---
                 gid = None
                 for old_gid, records in bottle_history.items():
                     for r in records:
@@ -146,7 +182,7 @@ while any(active):
                         'cams': [cam_idx]
                     }]
 
-                # Draw bounding box & ID (from first script)
+                # Draw bounding box & ID
                 colour = getColour(gid)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 5)
 
@@ -160,33 +196,49 @@ while any(active):
 
                 cv2.putText(frame, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, colour, thickness)
 
-                # --- Drawing Bounding Boxes --- (from second script)
-                class_name = class_names[cls] if cls in class_names else str(cls)
+                # --- Drawing YOLO Bounding Boxes ---
+                class_name = class_names_yolo[cls] if cls in class_names_yolo else str(cls)
                 conf_label = f"{class_name} {conf:.2f}"
                 cls_colour = getColours(cls)
                 cv2.rectangle(frame, (x1, y1), (x2, y2), cls_colour, 2)
                 cv2.putText(frame, conf_label, (x1, max(y1 - 10, 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, cls_colour, 2)
 
+                # >>> UPDATED: EfficientNet classification
+                roi = frame[y1:y2, x1:x2]
+                if roi.size != 0:
+                    pil_img = Image.fromarray(cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))
+                    input_tensor = classifier_transforms(pil_img).unsqueeze(0).to(device)
+
+                    with torch.no_grad():
+                        outputs = classifier_model(input_tensor)
+                        probs = torch.softmax(outputs, dim=1)
+                        pred_class = torch.argmax(probs, dim=1).item()
+                        pred_label = class_labels[pred_class]
+                        pred_conf = probs[0, pred_class].item()
+
+                    # Draw classifier label on frame
+                    cv2.putText(frame, f"{pred_label} {pred_conf:.2f}", (x1, max(y1-30, 20)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+                # <<< END UPDATE
+
     # 3. Show all cameras in grid
     grid_frame = create_grid(frames, rows=2, cols=2, width=640, height=360)
     cv2.imshow("All Cameras Grid", grid_frame)
 
-    # Display the frame in a separate window for each video (from second script)
+    # Display individual video frames
     for i, frame in enumerate(frames):
         if frame is not None:
             window_name = f'Tracking Gas Bottles - Video {i + 1}'
             cv2.imshow(window_name, frame)
 
-    # 4. Break if all videos have finished
     if all_videos_finished:
         print("All video streams have finished.")
         break
 
-    # Break on 'q' key press
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Cleanup
+# --- Cleanup ---
 for cap in caps:
     cap.release()
 cv2.destroyAllWindows()

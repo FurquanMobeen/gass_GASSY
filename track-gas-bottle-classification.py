@@ -63,7 +63,7 @@ def classify_gas_bottle(frame, x1, y1, x2, y2):
     return predicted_class, confidence
 
 # Video capture
-video_path = r"C:\Users\purva\Documents\Github\gass_Gassy\videos\14_55_top_cropped.mp4"
+video_path = r"C:\Users\purva\Documents\Github\gass_Gassy\videos\14_55_front_cropped.mp4"
 videoCap = cv2.VideoCapture(video_path)
 
 while True:

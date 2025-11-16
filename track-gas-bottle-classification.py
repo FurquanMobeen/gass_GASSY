@@ -14,7 +14,7 @@ yolo = YOLO(r"C:\Users\purva\Documents\GitHub\gass_GASSY\models\yolo11x_finetune
 print("YOLO model loaded successfully!")
 
 # Load classifier checkpoint
-checkpoint_path = r"C:\Users\purva\Documents\Github\gass_GASSY\classifier-setup\src\classifier\models\bottle_classifier_fold_5.pth"
+checkpoint_path = r"C:\Users\purva\Documents\Github\gass_GASSY\classifier-setup\src\classifier\models\bottle_classifier_fold_2.pth"
 state_dict = torch.load(checkpoint_path, map_location=device)
 
 

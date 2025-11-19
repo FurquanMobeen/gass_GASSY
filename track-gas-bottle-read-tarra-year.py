@@ -4,7 +4,7 @@ from ultralytics import YOLO
 import easyocr
 
 # Initialize YOLO
-yolo = YOLO("models/best.pt")
+yolo = YOLO("models/text_detection/best.pt")
 
 # Initialize EasyOCR
 reader = easyocr.Reader(['en'])  # Add languages if needed

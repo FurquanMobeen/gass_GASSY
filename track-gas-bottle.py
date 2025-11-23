@@ -4,7 +4,7 @@ import torch
 import torchvision.transforms as transforms
 from ultralytics import YOLO
 from PIL import Image
-import torchvision.models as models
+import timm
 import easyocr
 import numpy as np
 import re
@@ -28,11 +28,10 @@ reader = easyocr.Reader(['en'])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load the classifier checkpoint (direct state dict)
-checkpoint = torch.load("models/tank_classifier/bottle_classifier_fold_2.pth", map_location=device, weights_only=False)
+checkpoint = torch.load("models/tank_classifier/convnextv2_base_trained.pth", map_location=device)
 
-# Create EfficientNet-B0 model with 2 classes
-classifier = models.efficientnet_b0(weights=None)
-classifier.classifier[1] = torch.nn.Linear(classifier.classifier[1].in_features, 2)
+# Create ConvNeXtV2-Large model with 2 classes using timm
+classifier = timm.create_model('convnextv2_base', pretrained=False, num_classes=2)
 
 # Load the state dict
 classifier.load_state_dict(checkpoint)
@@ -187,8 +186,8 @@ def extract_text_with_ocr(crop, is_year=False, is_weight=False):
     
     return cleaned_text, avg_conf
 
-video_path = "videos/input/14_43_back_right_cropped.mp4"
-output_path = 'videos/output/14_43_back_right_cropped.mp4'
+video_path = "videos/input/14_43_back_left_cropped.mp4"
+output_path = 'videos/output/14_43_back_left_cropped.mp4'
 
 # Delete existing output file if it exists
 if os.path.exists(output_path):

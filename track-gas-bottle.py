@@ -10,6 +10,10 @@ import numpy as np
 import re
 import os
 import csv
+from datetime import datetime
+
+# Get current year
+CURRENT_YEAR = datetime.now().year
 
 # Load YOLO model for detection
 yolo = YOLO("models/tank_detection/best.pt")
@@ -328,6 +332,10 @@ try:
                                         # Update if no year stored yet, or if new year is lower
                                         if not id_ocr_data[display_id]["year"]:
                                             id_ocr_data[display_id]["year"] = ocr_text
+                                            
+                                            # Check if year is expired (below current year)
+                                            if new_year < CURRENT_YEAR:
+                                                id_ocr_data[display_id]["classification"] = "nok (expired)"
                                         else:
                                             # Extract current stored year value
                                             current_match = re.search(r'(\d{4})', id_ocr_data[display_id]["year"])
@@ -336,6 +344,10 @@ try:
                                                 # Update only if new year is lower AND difference is more than 10
                                                 if new_year < current_year and (current_year - new_year) > 10:
                                                     id_ocr_data[display_id]["year"] = ocr_text
+                                                    
+                                                    # Check if updated year is expired (below current year)
+                                                    if new_year < CURRENT_YEAR:
+                                                        id_ocr_data[display_id]["classification"] = "nok (expired)"
                 
                 cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 3)
                 
@@ -351,8 +363,13 @@ try:
                 y_text_line2 = max(line_height * 2, y1 - 10 - line_height)
                 x_text = max(5, min(x1, frame_width - 300))  # Keep within frame bounds
                 
+                # Get current classification to display
+                display_classification = classifier_label
+                if display_id is not None and display_id in id_ocr_data:
+                    display_classification = id_ocr_data[display_id]["classification"] if id_ocr_data[display_id]["classification"] else classifier_label
+                
                 # Display classification (line 2 - higher up)
-                cv2.putText(frame, f"{classifier_label} {classifier_conf:.2f}",
+                cv2.putText(frame, f"{display_classification} {classifier_conf:.2f}",
                             (x_text, y_text_line2), cv2.FONT_HERSHEY_SIMPLEX,
                             1.2, (0, 255, 0), 3)
                 

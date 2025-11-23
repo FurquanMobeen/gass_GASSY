@@ -4,3 +4,6 @@
 .DS_Store
 /classifier-setup/data
 /classifier-setup/src/classifier/models
+/IMPORTANT-saves
+/ConvNext/training-data
+.gitignore

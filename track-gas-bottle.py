@@ -202,7 +202,7 @@ out = cv2.VideoWriter(output_path, fourcc, 20.0,
 
 frame_count = 0
 id_mapping = {}
-next_consecutive_id = 0
+next_consecutive_id = -2
 # Store OCR data bound to each tracking ID
 id_ocr_data = {}  # {display_id: {"tarra": "weight", "year": "year", "classification": "ok/nok", "confidence": 0.xx}}
 

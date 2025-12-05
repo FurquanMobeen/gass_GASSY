@@ -122,7 +122,7 @@ def extract_text_with_ocr(bottle_roi, box_id=None):
                 tconf = float(tbox.conf[0]) if hasattr(tbox, "conf") and tbox.conf is not None else 1.0
             except Exception:
                 tconf = 1.0
-            if tconf < 0.4:
+            if tconf < 0.6:
                 continue
 
             try:

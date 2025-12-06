@@ -12,21 +12,16 @@ ok_files2 = [os.path.join(ok_dir2, f) for f in os.listdir(ok_dir2) if os.path.is
 nok_count = len(nok_files)
 ok_count = len(ok_files2)
 
-if nok_count == ok_count:
-    print("Both folders already have the same number of files.")
-elif nok_count > ok_count:
-    # Remove random files from nok to match ok
+
+if nok_count > ok_count:
     to_remove = nok_count - ok_count
     files_to_delete = random.sample(nok_files, to_remove)
     for file_path in files_to_delete:
         print(f"Deleting from nok: {file_path}")
         os.remove(file_path)
-    print(f"Deleted {to_remove} files from nok.")
 else:
-    # Remove random files from ok to match nok
     to_remove = ok_count - nok_count
     files_to_delete = random.sample(ok_files2, to_remove)
     for file_path in files_to_delete:
         print(f"Deleting from ok: {file_path}")
         os.remove(file_path)
-    print(f"Deleted {to_remove} files from ok.")

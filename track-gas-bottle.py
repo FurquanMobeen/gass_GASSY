@@ -204,17 +204,17 @@ def extract_text_with_ocr(bottle_roi, box_id=None):
     return stable_text, final_weight, final_year
 # ------------------- End Updated OCR logic -------------------
 
-# video_path = "videos/input/14_43/14_43_back_left_cropped.mp4"
-# output_path = 'videos/output/14_43_back_left_cropped.mp4'
+# video_path = "videos/input/14_55/14_55_back_left_cropped.mp4"
+# output_path = 'videos/output/14_55_back_left_cropped.mp4'
 
-video_path = "videos/input/14_43/14_43_back_right_cropped.mp4"
-output_path = 'videos/output/14_43_back_right_cropped.mp4'
+video_path = "videos/input/14_55/14_55_back_right_cropped.mp4"
+output_path = 'videos/output/14_55_back_right_cropped.mp4'
 
-# video_path = "videos/input/14_43/14_43_front_cropped.mp4"
-# output_path = 'videos/output/14_43_front_cropped.mp4'
+# video_path = "videos/input/14_55/14_55_front_cropped.mp4"
+# output_path = 'videos/output/14_55_front_cropped.mp4'
 
-# video_path = "videos/input/14_43/14_43_top_cropped.mp4"
-# output_path = 'videos/output/14_43_top_cropped.mp4'
+# video_path = "videos/input/14_55/14_55_top_cropped.mp4"
+# output_path = 'videos/output/14_55_top_cropped.mp4'
 
 # Delete existing output file if it exists
 if os.path.exists(output_path):

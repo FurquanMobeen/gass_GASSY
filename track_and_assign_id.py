@@ -25,7 +25,7 @@ def process_video(video_path, output_path, crop_output_root):
     frame_count = 0
     id_mapping = {}
     # next_consecutive_id = -2 # 14_43
-    next_consecutive_id = 1 # 13_44
+    # next_consecutive_id = 1 # 13_44
     # next_consecutive_id = 1 # 14_32
     # next_consecutive_id = 1 # 14_55
 
@@ -36,7 +36,7 @@ def process_video(video_path, output_path, crop_output_root):
     os.makedirs(nok_dir, exist_ok=True)
     # Only save crops for these display IDs
     # allowed_ids = {13, 24, 32, 36, 53, 59, 66, 69, 73, 80, 82, 88, 95, 102, 128, 159} # 14_43
-    allowed_ids = {30, 43, 72, 83, 88, 110, 122} # 13_44
+    # allowed_ids = {30, 43, 72, 83, 88, 110, 122} # 13_44
     # allowed_ids = {10, 16, 23, 24, 35, 54, 64, 76, 84, 143, 144, 146, 159, 167, 172} # 14_32
     # allowed_ids = {3, 7, 15, 22, 35, 55, 69, 73, 82, 83, 89, 97, 107} # 14_55
 

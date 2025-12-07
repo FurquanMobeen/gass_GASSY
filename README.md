@@ -175,6 +175,12 @@ The chart below summarizes the algorithm’s performance metrics:
 - F1–Confidence Curve: Peak F1 = 0.96 at confidence 0.79
 - Precision–Confidence & Recall–Confidence Curves: Stable up to ~0.8 confidence
 
-🧪 Performance evaluation was performed on fine-tuned YOLO11x trained with real site photos.
-
 ---
+## Overal performance
+| Metric | Value | Description |
+|:-------|:------:|:------------|
+| **Precision** | **2.6%**  | Correct detections among predicted positives |
+| **Recall** | **100%** | True detections among actual positives |
+| **F3 Score** | **21.3%** | Best balance between precision and recall |
+| **Dangerous fills** | **11 (16,7%)** | |
+| **Tarra Weight Standard Deviation** | **2.13** | |

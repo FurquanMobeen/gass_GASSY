@@ -17,14 +17,16 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, classification_report
 import pandas as pd
 
+from config import *
+
 # Get current year
 CURRENT_YEAR = datetime.now().year
 
 # Load YOLO model for detection
-yolo = YOLO("models/tank_detection/best.pt")
+yolo = YOLO(GAS_BOTTLE_DETECTION_YOLO_PATH)
 
 # Load YOLO model for text detection (tarra weight and year)
-text_yolo = YOLO("models/text_detection/new_yolo11s_extract_tarra_weights.pt")
+text_yolo = YOLO(TARRA_AND_YEAR_DETECTION_YOLO_PATH)
 
 # Initialize EasyOCR reader
 reader = easyocr.Reader(['en'])
@@ -33,7 +35,7 @@ reader = easyocr.Reader(['en'])
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load the classifier checkpoint (direct state dict)
-checkpoint = torch.load("models/tank_classifier/convnextv2_base_trained.pth", map_location=device)
+checkpoint = torch.load(CLASSIFIER_MODEL_PATH, map_location=device)
 
 # Create ConvNeXtV2 model with 2 classes using timm
 classifier = timm.create_model('convnextv2_base', pretrained=False, num_classes=2)
@@ -207,14 +209,8 @@ def extract_text_with_ocr(bottle_roi, box_id=None):
 # video_path = "videos/input/14_55/14_55_back_left_cropped.mp4"
 # output_path = 'videos/output/14_55_back_left_cropped.mp4'
 
-video_path = "videos/input/14_55/14_55_back_right_cropped.mp4"
-output_path = 'videos/output/14_55_back_right_cropped.mp4'
-
-# video_path = "videos/input/14_55/14_55_front_cropped.mp4"
-# output_path = 'videos/output/14_55_front_cropped.mp4'
-
-# video_path = "videos/input/14_55/14_55_top_cropped.mp4"
-# output_path = 'videos/output/14_55_top_cropped.mp4'
+video_path = VIDEO_INPUT_PATH
+output_path = VIDEO_OUTPUT_PATH
 
 # Delete existing output file if it exists
 if os.path.exists(output_path):
@@ -256,7 +252,7 @@ def save_csv_data():
     return csv_output_path
 
 # ------------------- Optional: Load ground truth from Excel (if available) -------------------
-ground_truth_path = "groundtruth.xlsx"
+ground_truth_path = GROUND_TRUTH_PATH
 ground_truth = {}
 if os.path.exists(ground_truth_path):
     try:
@@ -286,7 +282,7 @@ try:
 
         # Perform tracking; lowered conf can help detect more intermittent bottles
         try:
-            results = yolo.track(frame, conf=0.4, tracker="bytetrack.yaml", persist=True, stream=True)
+            results = yolo.track(frame, conf=0.4, tracker=TRACKER_CONFIG_PATH, persist=True, stream=True)
         except Exception as e:
             # If tracking call fails for a frame, print and continue to next frame
             print(f"Warning: YOLO.track failed on frame {frame_count}: {e}")

@@ -11,14 +11,82 @@ The system supports **on-site deployment** and aims to enhance:
 - Safety monitoring  
 - Inventory tracking  
 
-### Main algorithms
-- `track-gas-bottle.py` : Gas bottle tracking from one source video.
-- `track-gas-bottle-with-easyOCR.py` : Gas bottle tracking from one source video with OCR.
-- `track-gas-bottle-multiple-videos.py` : Gas bottle tracking from multiple source videos.
-- `track-gas-bottle-classification.py` : Gas bottle tracking from multiple source videos with classification (ok, not PrimaGaz, etc..)
-- `track-gas-bottle-multiple-videos-pretrained-OCR.py` : Gas bottle tracking from multiple source videos with pretrained OCR.
-- `track-gas-bottle-read-tarra-year.py` : Gas bottle tracking text with YOLOv11m and OCR reading, displayed in separate panel.
+## 🚀 Getting Started
+
+Follow these steps to set up the project on your local machine.
+
+### 1️⃣ Prerequisites
+- **Python 3.8+**: [Download Python](https://www.python.org/downloads/)
+- **Git**: [Download Git](https://git-scm.com/downloads)
+- **Visual Studio Code** (Recommended): For editing and running code.
+
+### 2️⃣ Installation
+
+1. **Clone the repository**
+   Open your terminal (Command Prompt or Terminal) and run:
+   ```bash
+   git clone https://github.com/FurquanMobeen/gass_GASSY.git
+   cd gass_GASSY
+   ```
+
+2. **Create a Virtual Environment (Recommended)**
+   This keeps your project libraries separate from other projects.
+   ```bash
+   # Windows
+   python -m venv venv
+   .\venv\Scripts\activate
+
+   # macOS / Linux
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+3. **Install Dependencies**
+   Install all required AI and vision libraries:
+   ```bash
+   pip install ultralytics opencv-python easyocr torch torchvision
+   ```
+   *(Note: If you have an NVIDIA GPU, install the CUDA-enabled version of PyTorch from [pytorch.org](https://pytorch.org/) for faster performance.)*
+
+### 3️⃣ Project Structure
+Ensure your folders are organized so the scripts can find the models and videos:
+
+```text
+gass_GASSY/
+├── models/                  # 📂 Place your AI models here
+│   ├── yolo11n_bottles.pt
+│   ├── bottle_classifier_fold_2.pth
+│   └── new_yolo11s_extract_tarra_weights.pt
+├── videos/                  # 📂 Place your input videos here
+│   └── 14_55_front_cropped.mp4
+├── track-gas-bottle.py      # 🐍 Main tracking script
+└── README.md
+```
+
 ---
+
+## 🏃‍♂️ How to Run
+
+To simply detect and track gas bottles in the video:
+
+For Windows:
+```bash
+python track-gas-bottle.py
+```
+
+For macOS:
+```bash
+python3 track-gas-bottle.py
+```
+
+### ⚙️ Configuration
+Make sure to fill in all the models and videos and bytetrack paths in `config.py` file.
+
+All the models can be downloaded here: <br> https://ucll-my.sharepoint.com/:f:/r/personal/r0975382_ucll_be/Documents/AI%20Applications%20-%20Team%20Gassy/Models?csf=1&web=1&e=jxcnzj
+
+## Main algorithms
+- `track-gas-bottle.py` : Gas bottle tracking from one source video.
+
 
 ## 🧩 Customer Requirements
 
@@ -30,139 +98,58 @@ The customer requested the following capabilities:
 - ✅ Easy-to-run Python scripts for local computers.  
 - ✅ Extendable dataset and training workflow for future updates.
 
----
-
 ## ⚙️ General Algorithm Architecture
 
-Below is a simplified view of the YOLO-based tracking pipeline implemented in `track-gas-bottle-with-easyOCR.py`:
+### 🤖 Gas Bottle Inspection and Tracking Algorithm
 
-```python
-import cv2
-import random
-from ultralytics import YOLO
-import easyocr
+This algorithm is a comprehensive computer vision pipeline designed to **track, inspect, and log data** from gas bottles moving in a video feed. It acts as a **smart automated inspector** that watches the video, spots the bottles, gives them unique IDs, checks if they're safe (OK/NOT OK), and tries to read their tarra weight and recertification year.
 
-# Load YOLO models
-bottle_yolo = YOLO("models/yolo11n_bottles.pt")  # For gas bottle tracking
-text_yolo = YOLO("models/yolo11s_extract_tarra_weights.pt")  # For text region detection
+### 🛠️ Core Components and Technologies
 
-# Initialize EasyOCR reader
-reader = easyocr.Reader(['en'])
+The algorithm relies on several advanced machine learning models and libraries:
 
-def getColours(cls_num):
-    random.seed(cls_num)
-    return tuple(random.randint(0, 255) for _ in range(3))
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Object Detection** | **YOLOv8** (from `ultralytics`) | Detects the **location** of the gas bottles (the object) and the **location** of the stamped text (tarra weight/year). |
+| **Tracking** | Integrated Tracker (e.g., BOT-SORT/ByteTrack) | Assigns a stable, consistent **ID** to each bottle as it moves across frames. |
+| **Classification** | **ConvNeXtV2** (via `timm`) | A trained model for **binary classification** (OK/NOT OK) of the bottle's visual condition. |
+| **Text Reading** | **EasyOCR** | An Optical Character Recognition library used to **read** the numbers/text (weight and year) from the detected text regions. |
 
-video_path = "videos/14_55_front_cropped.mp4"
-videoCap = cv2.VideoCapture(video_path)
+---
 
-frame_count = 0
+### ⚙️ Key Operational Functions
 
-while True:
-    ret, frame = videoCap.read()
-    if not ret:
-        break
-    # Bottle detection & tracking
-    results = bottle_yolo.track(
-        frame,
-        conf=0.4,
-        tracker="bytetrack.yaml",
-        persist=True,
-        stream=False,
-    )
-    
-    for result in results:
-        class_names = result.names
-        if not hasattr(result, "boxes") or len(result.boxes) == 0:
-            continue
-        for box in result.boxes:
-            conf = float(box.conf[0]) if hasattr(box, "conf") else 1.0
-            if conf < 0.4:
-                continue
+#### 1. Tracking & Identification 🎯
 
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            cls = int(box.cls[0]) if hasattr(box, "cls") else 0
-            class_name = class_names.get(cls, str(cls)) if isinstance(class_names, dict) else str(cls)
-            colour = getColours(cls)
+* **Goal:** To give each individual gas bottle a unique ID and follow it throughout the video.
+* **Process:** The `yolo.track()` function assigns an internal `track_id`. The code maps this to a clean, consecutive `display_id` for reporting (`id_mapping`).
 
-            # Draw bottle
-            cv2.rectangle(frame, (x1, y1), (x2, y2), colour, 2)
-            cv2.putText(
-                frame,
-                f"{class_name} {conf:.2f}",
-                (x1, max(y1 - 10, 20)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                colour,
-                2,
-            )
+#### 2. Condition Classification ✅/❌
 
-            # Text detection within bottle ROI using second YOLO
-            bottle_roi = frame[y1:y2, x1:x2]
-            if bottle_roi.size == 0:
-                continue
+* **Goal:** Determine the safety status of the bottle (OK or NOT OK).
+* **Process:** The `classify_gas_bottle` function extracts the bottle's image (Region of Interest or **ROI**) and feeds it to the **ConvNeXtV2 classifier**.
+* **Data Storage:** The highest confidence classification and label (`ok` or `nok`) are stored persistently in the `id_ocr_data` dictionary for that bottle's ID.
 
-            text_results = text_yolo(bottle_roi)
-            for text_res in text_results:
-                if not hasattr(text_res, "boxes") or len(text_res.boxes) == 0:
-                    continue
-                for tbox in text_res.boxes:
-                    tconf = float(tbox.conf[0]) if hasattr(tbox, "conf") else 1.0
-                    if tconf < 0.4:
-                        continue
+#### 3. Reading Stamped Data (OCR) 🔢
 
-                    tx1, ty1, tx2, ty2 = map(int, tbox.xyxy[0])
+* **Goal:** Extract the **Tarra weight** (e.g., 10.8 kg) and **Recertification Year** (e.g., 2025) stamped on the bottle.
+* **Function:** `extract_text_with_ocr`
+    * Uses **`text_yolo`** to precisely locate the tiny stamped text regions.
+    * Applies **image preprocessing** (CLAHE, rotations) to enhance the often faint text.
+    * Uses **`EasyOCR`** to read the characters.
+    * **Stabilization:** Stores multiple OCR results per bottle (`ocr_memory`) and uses a **majority vote** (`Counter`) to select the most *stable* reading over time, increasing reliability.
+    * **Validation:** Uses **Regular Expressions** to confirm the extracted values are valid weights ($\text{X.X}$) and years ($\text{20XX}$).
+    * **Automatic Flagging:** If the extracted recertification year is older than the `CURRENT_YEAR`, the bottle is automatically flagged as **"nok (expired)"**.
 
-                    # Adjust coordinates to full frame
-                    gx1, gy1, gx2, gy2 = x1 + tx1, y1 + ty1, x1 + tx2, y1 + ty2
+#### 4. Output and Reporting 📊
 
-                    # Draw text region box
-                    cv2.rectangle(frame, (gx1, gy1), (gx2, gy2), (0, 255, 0), 2)
+* **Video Output:** Draws the bounding boxes, `ID`, classification, Tarra, and Year directly onto the video frames before saving to the `output_path` (e.g., `videos/output/...mp4`).
+* **CSV Log:** The `save_csv_data` function writes all the final, stabilized data for every tracked bottle into a structured `.csv` file (`_tracking_data.csv`).
+* **Performance Analysis (Optional):** If a **Ground Truth** file is found, the algorithm:
+    * Compares its classifications against the known labels.
+    * Calculates a **Confusion Matrix** and **Classification Report**.
+    * Generates a heatmap image of the Confusion Matrix to visually represent the model's accuracy.
 
-                    # OCR on text region
-                    text_roi = frame[gy1:gy2, gx1:gx2]
-                    if text_roi.size == 0:
-                        continue
-                    ocr_texts = reader.readtext(text_roi, detail=0)
-                    detected_text = " ".join(ocr_texts).strip()
-                    if detected_text:
-                        cv2.putText(
-                            frame,
-                            detected_text,
-                            (gx1, max(gy2 + 15, 20)),
-                            cv2.FONT_HERSHEY_SIMPLEX,
-                            0.7,
-                            (255, 255, 0),
-                            2,
-                        )
-    
-    # Display the frame
-    cv2.imshow('Tracking gas bottles (with OCR)', frame)
-    
-    # Break on 'q' key press
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    
-    frame_count += 1
-
-videoCap.release()
-cv2.destroyAllWindows()
-```
-### 🧠 Main Components
-- **Imports**: cv2, random, ultralytics.YOLO, easyocr for vision, detection, and OCR.
-- **Model Loading:** bottle_yolo (bottle tracking) and text_yolo (text-region detection) from local models/*.pt.
-- **OCR Init**: reader = easyocr.Reader(['en']) initialized once and reused.
-- **Utility**: getColours(cls_num) returns a consistent RGB color per class.
-- **Video Setup**: video_path, cv2.VideoCapture(video_path), and frame_count initialization.
-- **Main Loop**:
-  - Frame Read: grabs frames until stream ends.
-  - Bottle Detection/Tracking: bottle_yolo.track(..., conf=0.4, tracker="bytetrack.yaml", persist=True) to get boxes.
-  - Bottle Overlay: draws bottle bbox and label with confidence.
-  - Text Detection in ROI: crops bottle ROI and runs text_yolo(roi) to find text regions.
-  - Coordinate Mapping: converts ROI text boxes back to full-frame coordinates.
-  - OCR & Overlay: reader.readtext(text_roi, detail=0), concatenates text, overlays near each text bbox.
-  - Display & Control: shows the annotated frame (cv2.imshow), breaks on q.
-- **Cleanup**: releases the capture and calls cv2.destroyAllWindows().
 ---
 
 ## 🏆 Latest Performance Results
@@ -183,86 +170,11 @@ The model achieved excellent detection accuracy on photo-based validation datase
 - The loss and accuracy curves provide a clear visual understanding of the learning process and model stability. 
 
 ### 📊 Performance Visualization
-The chart below summarizes the YOLO model’s performance metrics:
+The chart below summarizes the algorithm’s performance metrics:
 - Precision–Recall Curve: mAP@0.5 = 0.992
 - F1–Confidence Curve: Peak F1 = 0.96 at confidence 0.79
 - Precision–Confidence & Recall–Confidence Curves: Stable up to ~0.8 confidence
 
 🧪 Performance evaluation was performed on fine-tuned YOLO11x trained with real site photos.
 
-### Multiple videos tracking in `track-gas-bottle-multiple-videos.py`:
-We added this in order to apply this algorithm to multiple videos from different angles, making the tracking and classification of gas bottles more accurate.
-
-### Gas bottle tracking with reading Tarra weight and Expiration year `track-gas-bottle-with-easyOCR.py`:
-easyOCR does not do well with not-horizontally-placed text, therefore meanwhile it reads the text, but it can not read the text correctly. <br>
-For example, instead of "7", it reads ">". Or instead of "1", it reads "I" or "L". <br>
-Therefore, in the future, we need to find a way to rotate the text dynamically to improve easyOCR performance, or find a different approach.
-
 ---
-## 🚀 How to Run the Tracker
-### 1️⃣ Install Dependencies
-Make sure you have Python ≥ 3.8 and install the required libraries:
-```python
-pip install ultralytics opencv-python
-```
-### 2️⃣ Update Video Source
-Before running, open track-gas-bottle.py and update the video path:
-```Python
-video_path = "videos/your_video_here.mp4"
-```
-### 💡 To use a webcam instead:
-```Python
-video_path = 0
-```
-### 3️⃣ Run the Script
-#### 🪟 On Windows
-```Bash
-python track-gas-bottle.py
-```
-#### 🍎 On macOS
-```Bash
-python3 track-gas-bottle.py
-```
-#### 🐧 On Linux
-```Bash
-python3 track-gas-bottle.py
-```
-🎥 Press `q` during execution to quit the tracking window.
-
----
-
-## 📖 How to Run OCR-Enhanced Tracking
-
-The `track-gas-bottle-read-tarra-year.py` script combines YOLO detection with **EasyOCR** to read text from detected gas bottles.
-
-### 1️⃣ Install Additional Dependencies
-```bash
-pip install easyocr
-```
-
-### 2️⃣ Update Video Path
-Open `track-gas-bottle-read-tarra-year.py` and set your video:
-```python
-video_path = "videos/input/your_video.mp4"
-```
-
-### 3️⃣ Run the Script
-#### 🪟 On Windows
-```bash
-python track-gas-bottle-read-tarra-year.py
-```
-#### 🍎 On macOS / 🐧 On Linux
-```bash
-python3 track-gas-bottle-read-tarra-year.py
-```
-
-### 📹 Output
-The annotated video will be saved to:
-```
-videos/output/output_tracked.mp4
-```
-
-This script displays:
-- Bounding boxes with class names and confidence scores
-- OCR-detected text in a separate panel for better visibility
-

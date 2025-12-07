@@ -182,5 +182,5 @@ The chart below summarizes the algorithm’s performance metrics:
 | **Precision** | **2.6%**  | Correct detections among predicted positives |
 | **Recall** | **100%** | True detections among actual positives |
 | **F3 Score** | **21.3%** | Best balance between precision and recall |
-| **Dangerous fills** | **11 (16,7%)** | |
+| **Dangerous fills** | **11 (16,7%)** | Of all the bottles whose tarra is detected, how many of its values are more than 0.5kg comparing to the ground truth|
 | **Tarra Weight Standard Deviation** | **2.13** | |

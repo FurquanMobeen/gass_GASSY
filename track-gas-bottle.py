@@ -225,9 +225,15 @@ out = cv2.VideoWriter(output_path, fourcc, 20.0,
 
 frame_count = 0
 id_mapping = {}
-next_consecutive_id = -2
+next_consecutive_id = 1  # Start display IDs from 1
+next_temp_tracker_id = -1000  # Separate counter for temporary tracker IDs (use negative numbers)
 # Store OCR data bound to each tracking ID
 id_ocr_data = {}  # {display_id: {"tarra": "weight", "year": "year", "classification": "ok/nok", "confidence": 0.xx}}
+# Track initial detections for verification - now tracking consecutive frames
+id_consecutive_frames = defaultdict(int)  # {track_id: count_of_consecutive_frames}
+id_last_seen_frame = {}  # {track_id: last_frame_number}
+id_verified = set()  # Set of track_ids that have been verified (appeared in 5+ consecutive frames)
+VERIFICATION_THRESHOLD = 20  # Number of consecutive frames needed to verify a detection
 
 def save_csv_data():
     """Save tracking data to CSV file"""
@@ -344,11 +350,29 @@ try:
                                 track_id = None
 
                     if track_id is None:
-                        # Assign a new unique id when tracker gives None
-                        track_id = next_consecutive_id
-                        next_consecutive_id += 1
+                        # Assign a temporary tracker id when tracker gives None (using negative numbers)
+                        track_id = next_temp_tracker_id
+                        next_temp_tracker_id -= 1
 
-                    # Map tracker id to display id (keeps existing behaviour)
+                    # Verification logic: require consecutive frames
+                    if track_id not in id_verified:
+                        # Check if this is a consecutive detection
+                        if track_id in id_last_seen_frame and (frame_count - id_last_seen_frame[track_id]) <= 2:
+                            # Consecutive (or nearly consecutive - allowing 1 frame gap for tracking issues)
+                            id_consecutive_frames[track_id] += 1
+                        else:
+                            # Reset counter if gap is too large
+                            id_consecutive_frames[track_id] = 1
+                        
+                        id_last_seen_frame[track_id] = frame_count
+                        
+                        if id_consecutive_frames[track_id] >= VERIFICATION_THRESHOLD:
+                            id_verified.add(track_id)
+                        else:
+                            # Skip processing this detection until verified
+                            continue
+
+                    # Map tracker id to display id ONLY after verification
                     if track_id not in id_mapping:
                         id_mapping[track_id] = next_consecutive_id
                         next_consecutive_id += 1
@@ -423,6 +447,14 @@ try:
                     continue
 
         out.write(frame)
+        
+        # Display the frame while processing
+        cv2.imshow('Gas Bottle Tracking', frame)
+        
+        # Press 'q' to quit early
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            print("\nVideo display closed by user. Saving data...")
+            break
 
 except KeyboardInterrupt:
     print("\n\nProcessing interrupted by user. Saving data...")
@@ -431,6 +463,7 @@ except Exception as e:
 finally:
     videoCap.release()
     out.release()
+    cv2.destroyAllWindows()  # Close any open windows
     print(f"Video saved to {output_path}")
     csv_path = save_csv_data()
     if torch.cuda.is_available():

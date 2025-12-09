@@ -188,13 +188,6 @@ The model achieved excellent detection accuracy on photo-based validation datase
 | 🔍 **Recall** | **0.9832** | True detections among actual positives |
 | ⚖️ **F1 Score** | **0.9821** | Best balance between precision and recall |
 
-### EfficientNet_B0 classification:
-- Early stopping successfully prevented overfitting across folds and reduced unnecessary computation. 
-- Validation performance was consistently high across folds, demonstrating the model’s stability and ability to generalize.. 
-- Fold 2 achieved perfect validation accuracy, showing that the dataset is well-learned by the model.
-- Overall, the model demonstrates strong generalization, with an average validation accuracy of 98.63% across 5 folds.
-- The loss and accuracy curves provide a clear visual understanding of the learning process and model stability. 
-
 ### 📊 Performance Visualization
 The chart below summarizes the algorithm’s performance metrics:
 - Precision–Recall Curve: mAP@0.5 = 0.992

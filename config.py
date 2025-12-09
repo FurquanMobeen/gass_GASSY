@@ -11,4 +11,4 @@ VIDEO_OUTPUT_PATH = ""
 
 # Other Paths
 GROUND_TRUTH_PATH = ""
-TRACKER_CONFIG_PATH = ""
+TRACKER_CONFIG_PATH = "bytetrack_custom.yaml"

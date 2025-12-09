@@ -66,9 +66,40 @@ gass_GASSY/
 ---
 
 ## 🏃‍♂️ How to Run
+### Step 1: Create directory `models` and `videos`
+```Bash
+mkdir -p models videos
+```
+Inside directory `videos`, create another directory called `output`
+```Bash
+cd videos
+mkdir -p output
+cd ../
+```
 
-To simply detect and track gas bottles in the video:
+### Step 2: Download resources:
+**Download the following:**
+<br>1. One of the videos and the ground truth file from here:<br> https://ucll-my.sharepoint.com/:f:/r/personal/r0975382_ucll_be/Documents/AI%20Applications%20-%20Team%20Gassy/videos?csf=1&web=1&e=QYysZy and place them all inside `videos` directory.
+<br><br>2. Download the models from here: <br> https://ucll-my.sharepoint.com/:f:/r/personal/r0975382_ucll_be/Documents/AI%20Applications%20-%20Team%20Gassy/Models?csf=1&web=1&e=jTpPgK
+  <br> Make sure the download the following models:
+  <ul>
+      <li>yolo11n_bottles.pt</li>
+      <li>new_yolo11s_extract_tarra_weights.pt</li>
+      <li>convnextv2_base_trained.pth</li>
+  </ul>
+and place them in "models" directory.
 
+### Step 3: Update `config.py`
+Update the path of all variables in `config.py` (except for TRACKER_CONFIG_PATH):
+- GAS_BOTTLE_DETECTION_YOLO_PATH: `yolo11n_bottles.pt`
+- TARRA_AND_YEAR_DETECTION_YOLO_PATH: `new_yolo11s_extract_tarra_weights.pt`
+- CLASSIFIER_MODEL_PATH: `convnextv2_base_trained.pth`
+- VIDEO_INPUT_PATH: path to the downloaded video
+- VIDEO_OUTPUT_PATH: add `/output` before the video name in VIDEO_INPUT_PATH
+- GROUND_TRUTH_PATH: path to the ground truth file
+
+
+### Step 4: Run the algorithm
 For Windows:
 ```bash
 python track-gas-bottle.py
@@ -78,11 +109,6 @@ For macOS:
 ```bash
 python3 track-gas-bottle.py
 ```
-
-### ⚙️ Configuration
-Make sure to fill in all the models and videos and bytetrack paths in `config.py` file.
-
-All the models can be downloaded here: <br> https://ucll-my.sharepoint.com/:f:/r/personal/r0975382_ucll_be/Documents/AI%20Applications%20-%20Team%20Gassy/Models?csf=1&web=1&e=jxcnzj
 
 ## Main algorithms
 - `track-gas-bottle.py` : Gas bottle tracking from one source video.

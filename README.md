@@ -177,24 +177,6 @@ The algorithm relies on several advanced machine learning models and libraries:
     * Generates a heatmap image of the Confusion Matrix to visually represent the model's accuracy.
 
 ---
-
-## 🏆 Latest Performance Results
-### (New) YOLO11s Model Object detection:
-The model achieved excellent detection accuracy on photo-based validation datasets.
-| Metric | Value | Description |
-|:-------|:------:|:------------|
-| 🧩 **mAP@0.5** | **0.9932**  | Mean Average Precision at IoU 0.5 |
-| 🎯 **Precision** | **0.9811**  | Correct detections among predicted positives |
-| 🔍 **Recall** | **0.9832** | True detections among actual positives |
-| ⚖️ **F1 Score** | **0.9821** | Best balance between precision and recall |
-
-### 📊 Performance Visualization
-The chart below summarizes the algorithm’s performance metrics:
-- Precision–Recall Curve: mAP@0.5 = 0.992
-- F1–Confidence Curve: Peak F1 = 0.96 at confidence 0.79
-- Precision–Confidence & Recall–Confidence Curves: Stable up to ~0.8 confidence
-
----
 ## Overal performance
 | Metric | Value | Description |
 |:-------|:------:|:------------|

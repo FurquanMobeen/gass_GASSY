@@ -28,11 +28,18 @@ yolo = YOLO(GAS_BOTTLE_DETECTION_YOLO_PATH)
 # Load YOLO model for text detection (tarra weight and year)
 text_yolo = YOLO(TARRA_AND_YEAR_DETECTION_YOLO_PATH)
 
-# Initialize EasyOCR reader
-reader = easyocr.Reader(['en'])
+# Initialize EasyOCR reader with GPU support
+reader = easyocr.Reader(['en'], gpu=True)
 
 # Load EfficientNet / ConvNeXt classifier
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Use MPS (Metal Performance Shaders) for Apple Silicon GPU acceleration
+if torch.backends.mps.is_available():
+    device = torch.device('mps')
+elif torch.cuda.is_available():
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
+print(f"Using device: {device}")
 
 # Load the classifier checkpoint (direct state dict)
 checkpoint = torch.load(CLASSIFIER_MODEL_PATH, map_location=device)

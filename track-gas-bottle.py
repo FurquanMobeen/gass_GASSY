@@ -124,7 +124,7 @@ def extract_text_with_ocr(bottle_roi, box_id=None):
                 tconf = float(tbox.conf[0]) if hasattr(tbox, "conf") and tbox.conf is not None else 1.0
             except Exception:
                 tconf = 1.0
-            if tconf < 0.6:
+            if tconf < 0.4:
                 continue
 
             try:
@@ -430,12 +430,14 @@ try:
 
                     if display_id is not None and display_id in id_ocr_data:
                         ocr_data = id_ocr_data[display_id]
-                        y_offset = min(y2 + 35, frame_height - 50)  # Start below the bottom, stay within frame
+                        # Place OCR info below the classification line
+                        y_offset = max(line_height * 2 + 45, y1 - 10 - line_height * 2 + 90)  # Start below classification
+                        
                         if ocr_data["tarra"]:
                             cv2.putText(frame, f"Tarra: {ocr_data['tarra']}",
                                         (x_text, y_offset), cv2.FONT_HERSHEY_SIMPLEX,
                                         1.0, (0, 255, 255), 2)
-                            y_offset = min(y_offset + 40, frame_height - 10)
+                            y_offset += 40  # Move down for next line
                         if ocr_data["year"]:
                             cv2.putText(frame, f"Year: {ocr_data['year']}",
                                         (x_text, y_offset), cv2.FONT_HERSHEY_SIMPLEX,
